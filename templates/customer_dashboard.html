@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BudolBox</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header Navigation -->
+        <header class="dashboard-header">
+            <nav class="dashboard-nav">
+                <div class="nav-brand">
+                    <i class="fas fa-shopping-cart"></i>
+                    BudolBox
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="search-container" style="flex: 1; max-width: 400px; margin: 0 2rem;">
+                    <div style="position: relative;">
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Search products..."
+                            style="width: 100%; padding: 0.5rem 2.5rem 0.5rem 1rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem;"
+                        >
+                        <button 
+                            id="searchBtn"
+                            style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--primary-red); cursor: pointer; font-size: 1.2rem;"
+                        >
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="nav-user">
+                    <span>Welcome, <strong>{{ user.username }}</strong></span>
+                </div>
+                
+                <div class="nav-menu">
+                    <button class="btn btn-outline" id="cartBtn">
+                        <i class="fas fa-shopping-cart"></i>
+                        Cart (<span id="cartCount">0</span>)
+                    </button>
+                    <a href="/account" class="btn btn-outline">
+                        <i class="fas fa-user"></i>
+                        Account
+                    </a>
+                    <a href="/logout" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </a>
+                </div>
+            </nav>
+        </header>
+
+        <div style="display: flex; gap: 0;">
+            <!-- Sidebar for Categories -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h3 class="sidebar-title">
+                        <i class="fas fa-list"></i>
+                        Categories
+                    </h3>
+                </div>
+                
+                <div class="sidebar-menu">
+                    <a href="{{ url_for('dashboard') }}" class="menu-item">
+                        <i class="fas fa-th-large"></i>
+                        All Products
+                    </a>
+
+                    <div id="categoryMenu">
+                        <!-- Categories will be loaded here -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main style="flex: 1; min-height: calc(100vh - 80px);">
+                <div class="dashboard-content">
+                    <!-- Browsing History Section -->
+                    <div class="card" id="historyCard" style="display: none;">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-history"></i>
+                                Recently Viewed
+                            </h3>
+                            <p class="card-subtitle">Products you've viewed recently</p>
+                        </div>
+                        <div class="card-body">
+                            <div id="browsingHistory" class="products-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+                                <!-- History items will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Products Section -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-boxes"></i>
+                                <span id="sectionTitle">All Products</span>
+                            </h3>
+                            <p class="card-subtitle" id="sectionSubtitle">Discover our amazing products</p>
+                        </div>
+                        <div class="card-body">
+                            <!-- Loading indicator -->
+                            <div id="loadingProducts" class="text-center" style="padding: 3rem;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-red);"></i>
+                                <p style="margin-top: 1rem; color: var(--text-light);">Loading products...</p>
+                            </div>
+                            
+                            <!-- Products grid -->
+                            <div id="productsGrid" class="products-grid" style="display: none;">
+                                <!-- Products will be loaded here -->
+                            </div>
+                            
+                            <!-- No products message -->
+                            <div id="noProducts" style="display: none; text-align: center; padding: 3rem;">
+                                <i class="fas fa-box-open" style="font-size: 4rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+                                <h3 style="color: var(--text-light); margin-bottom: 0.5rem;">No Products Found</h3>
+                                <p style="color: var(--text-light);">Try searching for something else or browse different categories.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalProductName">Product Details</h2>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Product details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-shopping-cart"></i>
+                    Shopping Cart
+                </h2>
+                <button class="modal-close" id="closeCartModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="cartModalBody">
+                <!-- Cart contents will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-credit-card"></i>
+                    Checkout
+                </h2>
+                <button class="modal-close" id="closeCheckoutModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="checkoutModalBody">
+                <!-- Checkout form will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentCategory = 'all';
+        let currentSearchQuery = '';
+        let products = [];
+        let cart = { items: [], total: 0, item_count: 0 };
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCategories();
+            loadProducts();
+            loadBrowsingHistory();
+            loadCart();
+            
+            // Event listeners
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            document.getElementById('searchBtn').addEventListener('click', performSearch);
+
+            // Cart button
+            document.getElementById('cartBtn').addEventListener('click', function() {
+                showCartModal();
+            });
+
+            // Modal close buttons
+            document.getElementById('closeModal').addEventListener('click', function() {
+                document.getElementById('productModal').classList.remove('active');
+            });
+
+            document.getElementById('closeCartModal').addEventListener('click', function() {
+                document.getElementById('cartModal').classList.remove('active');
+            });
+
+            document.getElementById('closeCheckoutModal').addEventListener('click', function() {
+                document.getElementById('checkoutModal').classList.remove('active');
+            });
+
+            // Close modals on outside click
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                    }
+                });
+            });
+        }
+
+        // Load categories from API
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const categoryData = await response.json();
+                
+                displayCategories(categoryData);
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+
+        function displayCategories(categoryData) {
+            const categoryMenu = document.getElementById('categoryMenu');
+            
+            function renderCategory(category, level = 0) {
+                const indent = '  '.repeat(level);
+                const icon = level === 0 ? 'fas fa-folder' : 'fas fa-folder-open';
+                
+                const categoryItem = document.createElement('a');
+                categoryItem.href = '#';
+                categoryItem.className = 'menu-item';
+                categoryItem.setAttribute('data-category', category.id);
+                categoryItem.innerHTML = `
+                    ${indent}<i class="${icon}"></i>
+                    ${category.name}
+                    ${category.product_count > 0 ? `<span style="margin-left: auto; font-size: 0.8rem; opacity: 0.7;">(${category.product_count})</span>` : ''}
+                `;
+                
+                categoryItem.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    selectCategory(category.id, category.name);
+                });
+                
+                categoryMenu.appendChild(categoryItem);
+                
+                // Render children
+                if (category.children && category.children.length > 0) {
+                    category.children.forEach(child => {
+                        renderCategory(child, level + 1);
+                    });
+                }
+            }
+            
+            if (categoryData.children) {
+                categoryData.children.forEach(category => {
+                    renderCategory(category);
+                });
+            }
+        }
+
+        function selectCategory(categoryId, categoryName) {
+            currentCategory = categoryId;
+            currentSearchQuery = '';
+            
+            // Update active menu item
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            if (categoryId === 'all') {
+                document.querySelector('[data-category="all"]').classList.add('active');
+                document.getElementById('sectionTitle').textContent = 'All Products';
+                document.getElementById('sectionSubtitle').textContent = 'Discover our amazing products';
+            } else {
+                document.querySelector(`[data-category="${categoryId}"]`).classList.add('active');
+                document.getElementById('sectionTitle').textContent = categoryName;
+                document.getElementById('sectionSubtitle').textContent = `Products in ${categoryName} category`;
+            }
+            
+            // Clear search
+            document.getElementById('searchInput').value = '';
+            
+            // Load products
+            loadProducts();
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            currentSearchQuery = query;
+            currentCategory = 'all';
+            
+            // Update active menu item
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            if (query) {
+                document.getElementById('sectionTitle').textContent = `Search Results for "${query}"`;
+                document.getElementById('sectionSubtitle').textContent = 'Products matching your search';
+            } else {
+                document.querySelector('[data-category="all"]').classList.add('active');
+                document.getElementById('sectionTitle').textContent = 'All Products';
+                document.getElementById('sectionSubtitle').textContent = 'Discover our amazing products';
+            }
+            
+            loadProducts();
+        }
+
+        // Load products from API
+        async function loadProducts() {
+            const loadingDiv = document.getElementById('loadingProducts');
+            const productsGrid = document.getElementById('productsGrid');
+            const noProductsDiv = document.getElementById('noProducts');
+            
+            // Show loading
+            loadingDiv.style.display = 'block';
+            productsGrid.style.display = 'none';
+            noProductsDiv.style.display = 'none';
+            
+            try {
+                let url = '/api/products';
+                const params = new URLSearchParams();
+                
+                if (currentSearchQuery) {
+                    params.append('search', currentSearchQuery);
+                } else if (currentCategory && currentCategory !== 'all') {
+                    params.append('category_id', currentCategory);
+                }
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                const response = await fetch(url);
+                products = await response.json();
+                
+                displayProducts(products);
+                
+            } catch (error) {
+                console.error('Error loading products:', error);
+                showNoProducts();
+            }
+        }
+
+        function displayProducts(productList) {
+            const loadingDiv = document.getElementById('loadingProducts');
+            const productsGrid = document.getElementById('productsGrid');
+            const noProductsDiv = document.getElementById('noProducts');
+            
+            loadingDiv.style.display = 'none';
+            
+            if (productList.length === 0) {
+                noProductsDiv.style.display = 'block';
+                productsGrid.style.display = 'none';
+                return;
+            }
+            
+            productsGrid.style.display = 'grid';
+            productsGrid.innerHTML = '';
+            
+            productList.forEach(product => {
+                const productCard = createProductCard(product);
+                productsGrid.appendChild(productCard);
+            });
+        }
+
+    // Fixed createProductCard function for customer_dashboard.html
+        function createProductCard(product) {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        
+        const stockStatus = product.stock > 0 ? 
+            `<span style="color: #10b981;">In Stock (${product.stock})</span>` : 
+            '<span style="color: #ef4444;">Out of Stock</span>';
+        
+        // Fixed: Check if product has image and display it properly
+        const productImage = product.image_path && product.image_path.trim() !== '' ? 
+            `<img src="/static/images/${product.image_path}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` :
+            `<i class="fas fa-image" style="font-size: 3rem; color: #9ca3af;"></i>`;
+        
+        card.innerHTML = `
+            <div class="product-image" style="height: 200px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                ${productImage}
+            </div>
+            <div class="product-info">
+                <h3 class="product-name">${product.name}</h3>
+                <div class="product-price">${product.price_formatted || '₱' + product.price.toFixed(2)}</div>
+                <div class="product-stock">${stockStatus}</div>
+                <div class="product-actions">
+                    <button class="btn btn-outline" onclick="viewProduct(${product.id})">
+                        <i class="fas fa-eye"></i>
+                        View
+                    </button>
+                    ${product.stock > 0 ? 
+                        `<button class="btn btn-danger" onclick="quickAddToCart(${product.id})">
+                            <i class="fas fa-cart-plus"></i>
+                            Add to Cart
+                        </button>` : 
+                        '<button class="btn" disabled style="background: #9ca3af; cursor: not-allowed;">Out of Stock</button>'
+                    }
+                </div>
+            </div>
+        `;
+        card.addEventListener('click', () => viewProduct(product.id));
+        return card;
+    }
+
+        // View product details
+        async function viewProduct(productId) {
+            try {
+                const response = await fetch(`/api/product/${productId}`);
+                const product = await response.json();
+                
+                showProductModal(product);
+                loadBrowsingHistory(); // Refresh browsing history
+                
+            } catch (error) {
+                console.error('Error loading product details:', error);
+                showAlert('error', 'Failed to load product details');
+            }
+        }
+
+        // Fixed showProductModal function for customer_dashboard.html
+        function showProductModal(product) {
+            const modal = document.getElementById('productModal');
+            const modalName = document.getElementById('modalProductName');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalName.textContent = product.name;
+            
+            const stockStatus = product.stock > 0 ? 
+                `<span style="color: #10b981; font-weight: 600;">In Stock (${product.stock} available)</span>` : 
+                '<span style="color: #ef4444; font-weight: 600;">Out of Stock</span>';
+            
+            // Fixed: Proper image display in modal
+            const productImage = product.image_path && product.image_path.trim() !== '' ? 
+                `<img src="/static/images/${product.image_path}" alt="${product.name}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 8px;">` :
+                `<div style="height: 300px; border-radius: 8px; background: #f3f4f6; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-image" style="font-size: 4rem; color: #9ca3af;"></i>
+                </div>`;
+            
+            modalBody.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div>
+                        ${productImage}
+                    </div>
+                    <div>
+                        <h2 style="color: var(--primary-red); margin-bottom: 1rem;">₱${product.price.toFixed(2)}</h2>
+                        <p style="margin-bottom: 1rem;"><strong>Category:</strong> ${product.category || 'Uncategorized'}</p>
+                        <p style="margin-bottom: 1rem;"><strong>Stock:</strong> ${stockStatus}</p>
+                        
+                        ${product.stock > 0 ? `
+                            <div style="margin: 2rem 0;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Quantity:</label>
+                                <div style="display: flex; gap: 1rem; align-items: center;">
+                                    <input 
+                                        type="number" 
+                                        id="productQuantity" 
+                                        min="1" 
+                                        max="${Math.min(product.stock, 10)}" 
+                                        value="1"
+                                        style="width: 80px; padding: 0.5rem; border: 2px solid #e5e7eb; border-radius: 4px;"
+                                    >
+                                    <button class="btn btn-danger" onclick="addToCartWithQuantity(${product.id})">
+                                        <i class="fas fa-cart-plus"></i>
+                                        Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                ${product.description ? `
+                    <div style="margin-bottom: 2rem;">
+                        <h3 style="margin-bottom: 1rem;">Description</h3>
+                        <p style="line-height: 1.6; color: var(--text-light);">${product.description}</p>
+                    </div>
+                ` : ''}
+                
+                ${product.recommendations && product.recommendations.length > 0 ? `
+                    <div>
+                        <h3 style="margin-bottom: 1rem;">You might also like</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            ${product.recommendations.map(rec => `
+                                <div class="feature-card" style="padding: 1rem; cursor: pointer;" onclick="viewProduct(${rec.id})">
+                                    <div style="height: 100px; background: var(--bg-light); border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem; overflow: hidden;">
+                                        ${rec.image_path && rec.image_path.trim() !== '' ? 
+                                            `<img src="/static/images/${rec.image_path}" alt="${rec.name}" style="width: 100%; height: 100%; object-fit: cover;">` :
+                                            `<i class="fas fa-image" style="color: var(--text-light);"></i>`
+                                        }
+                                    </div>
+                                    <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">${rec.name}</h4>
+                                    <p style="color: var(--primary-red); font-weight: 600;">${rec.price.toFixed(2)}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+            
+            modal.classList.add('active');
+        }
+        // Cart functionality
+        async function quickAddToCart(productId) {
+            await addToCart(productId, 1);
+        }
+
+        async function addToCartWithQuantity(productId) {
+            const quantity = parseInt(document.getElementById('productQuantity').value) || 1;
+            await addToCart(productId, quantity);
+            document.getElementById('productModal').classList.remove('active');
+        }
+
+        async function addToCart(productId, quantity) {
+            try {
+                const response = await fetch('/api/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        quantity: quantity
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('success', result.message);
+                    loadCart(); // Refresh cart
+                } else {
+                    showAlert('error', result.message || 'Failed to add to cart');
+                }
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                showAlert('error', 'Failed to add to cart');
+            }
+        }
+
+        // Load cart data
+        async function loadCart() {
+            try {
+                const response = await fetch('/api/cart');
+                cart = await response.json();
+                
+                document.getElementById('cartCount').textContent = cart.item_count || 0;
+                
+            } catch (error) {
+                console.error('Error loading cart:', error);
+            }
+        }
+
+        // Show cart modal
+        async function showCartModal() {
+            try {
+                const response = await fetch('/api/cart');
+                const cartData = await response.json();
+                
+                displayCartModal(cartData);
+                
+            } catch (error) {
+                console.error('Error loading cart:', error);
+                showAlert('error', 'Failed to load cart');
+            }
+        }
+
+        function displayCartModal(cartData) {
+            const modal = document.getElementById('cartModal');
+            const modalBody = document.getElementById('cartModalBody');
+            
+            if (!cartData.items || cartData.items.length === 0) {
+                modalBody.innerHTML = `
+                    <div style="text-align: center; padding: 3rem;">
+                        <i class="fas fa-shopping-cart" style="font-size: 4rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+                        <h3 style="color: var(--text-light); margin-bottom: 1rem;">Your cart is empty</h3>
+                        <p style="color: var(--text-light); margin-bottom: 2rem;">Add some products to get started!</p>
+                        <button class="btn btn-danger" onclick="document.getElementById('cartModal').classList.remove('active')">
+                            Continue Shopping
+                        </button>
+                    </div>
+                `;
+            } else {
+                modalBody.innerHTML = `
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Subtotal</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${cartData.items.map(item => `
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                                <div style="width: 60px; height: 60px; background: var(--bg-light); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                <img src="/static/images/${item.image_path}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+
+
+                                                <div>
+                                                    <div style="font-weight: 600;">${item.name}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>${item.price_formatted}</td>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                                <input 
+                                                    type="number" 
+                                                    min="1" 
+                                                    value="${item.quantity}"
+                                                    style="width: 60px; padding: 0.25rem; border: 1px solid #e5e7eb; border-radius: 4px;"
+                                                    onchange="updateCartQuantity(${item.product_id}, this.value)"
+                                                >
+                                            </div>
+                                        </td>
+                                        <td style="font-weight: 600;">${item.subtotal_formatted}</td>
+                                        <td>
+                                            <button class="btn btn-outline" onclick="removeFromCart(${item.product_id})" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e5e7eb;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                            <h3>Total: ${cartData.total_formatted}</h3>
+                            <div style="display: flex; gap: 1rem;">
+                                <button class="btn btn-outline" onclick="clearCart()">
+                                    <i class="fas fa-trash"></i>
+                                    Clear Cart
+                                </button>
+                                <button class="btn btn-danger" onclick="proceedToCheckout()">
+                                    <i class="fas fa-credit-card"></i>
+                                    Checkout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        // Cart management functions
+        async function updateCartQuantity(productId, quantity) {
+            try {
+                const response = await fetch('/api/cart', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        quantity: parseInt(quantity)
+                    })
+                });
+
+                if (response.ok) {
+                    showCartModal(); // Refresh cart modal
+                    loadCart(); // Update cart count
+                }
+            } catch (error) {
+                console.error('Error updating cart:', error);
+            }
+        }
+
+        async function removeFromCart(productId) {
+            try {
+                const response = await fetch('/api/cart', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_id: productId
+                    })
+                });
+
+                if (response.ok) {
+                    showCartModal(); // Refresh cart modal
+                    loadCart(); // Update cart count
+                    showAlert('success', 'Item removed from cart');
+                }
+            } catch (error) {
+                console.error('Error removing from cart:', error);
+            }
+        }
+
+        async function clearCart() {
+            if (confirm('Are you sure you want to clear your cart?')) {
+                try {
+                    const response = await fetch('/api/cart', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            clear_all: true
+                        })
+                    });
+
+                    if (response.ok) {
+                        showCartModal(); // Refresh cart modal
+                        loadCart(); // Update cart count
+                        showAlert('success', 'Cart cleared');
+                    }
+                } catch (error) {
+                    console.error('Error clearing cart:', error);
+                }
+            }
+        }
+
+        // Checkout
+        function proceedToCheckout() {
+            document.getElementById('cartModal').classList.remove('active');
+            showCheckoutModal();
+        }
+
+        function showCheckoutModal() {
+            const modal = document.getElementById('checkoutModal');
+            const modalBody = document.getElementById('checkoutModalBody');
+            
+            modalBody.innerHTML = `
+                <form id="checkoutForm">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Shipping Information</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Full Address *</label>
+                                <textarea 
+                                    name="address" 
+                                    class="form-input" 
+                                    rows="3" 
+                                    placeholder="Enter your complete delivery address"
+                                    required
+                                ></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Contact Number *</label>
+                                <input 
+                                    type="tel" 
+                                    name="contact" 
+                                    class="form-input" 
+                                    placeholder="Enter your phone number"
+                                    required
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Special Instructions (Optional)</label>
+                                <textarea 
+                                    name="notes" 
+                                    class="form-input" 
+                                    rows="2" 
+                                    placeholder="Any special delivery instructions"
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="margin-top: 1rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">Payment Method</h3>
+                        </div>
+                        <div class="card-body">
+                            <p style="color: var(--text-light);">
+                                <i class="fas fa-money-bill-wave"></i>
+                                Cash on Delivery - Pay when you receive your order
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" onclick="document.getElementById('checkoutModal').classList.remove('active')">
+                            Back to Cart
+                        </button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-check"></i>
+                            Place Order
+                        </button>
+                    </div>
+                </form>
+            `;
+            
+            // Setup checkout form handler
+            document.getElementById('checkoutForm').addEventListener('submit', handleCheckout);
+            
+            modal.classList.add('active');
+        }
+
+        async function handleCheckout(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            
+            const data = {
+                address: formData.get('address'),
+                contact: formData.get('contact'),
+                notes: formData.get('notes') || ''
+            };
+            
+            // Disable submit button
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            try {
+                const response = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('checkoutModal').classList.remove('active');
+                    showAlert('success', result.message);
+                    loadCart(); // Update cart count
+                } else {
+                    showAlert('error', result.message);
+                }
+            } catch (error) {
+                console.error('Error during checkout:', error);
+                showAlert('error', 'Failed to process order. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+
+        // Load browsing history
+        async function loadBrowsingHistory() {
+            try {
+                const response = await fetch('/api/browsing_history');
+                const historyData = await response.json();
+                
+                displayBrowsingHistory(historyData);
+                
+            } catch (error) {
+                console.error('Error loading browsing history:', error);
+            }
+        }
+
+        function displayBrowsingHistory(historyData) {
+        const historyCard = document.getElementById('historyCard');
+        const historyContainer = document.getElementById('browsingHistory');
+        
+        if (!historyData.items || historyData.items.length === 0) {
+            historyCard.style.display = 'none';
+            return;
+        }
+        
+        historyCard.style.display = 'block';
+        historyContainer.innerHTML = '';
+        
+        historyData.items.forEach(item => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'product-card';
+            historyItem.style.cursor = 'pointer';
+            historyItem.onclick = () => viewProduct(item.product_id);
+            
+            // Fixed: Display image and price properly
+            const productImage = item.image_path && item.image_path.trim() !== '' ? 
+                `<img src="/static/images/${item.image_path}" alt="${item.product_name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` :
+                `<i class="fas fa-image" style="font-size: 2rem; color: #9ca3af;"></i>`;
+            
+            historyItem.innerHTML = `
+                <div class="product-image" style="height: 120px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    ${productImage}
+                </div>
+                <div class="product-info" style="padding: 1rem;">
+                    <h4 class="product-name" style="font-size: 1rem; margin-bottom: 0.5rem;">${item.product_name}</h4>
+                    <p style="font-size: 0.9rem; color: var(--primary-red); font-weight: bold; margin-bottom: 0.5rem;">
+                        ${item.price_formatted || '₱' + (item.price || 0).toFixed(2)}
+                    </p>
+                    <p style="font-size: 0.8rem; color: var(--text-light);">Recently viewed</p>
+                </div>
+            `;
+            
+            historyContainer.appendChild(historyItem);
+        });
+    }
+
+        // Utility function to show alerts
+        function showAlert(type, message) {
+            // Create alert element
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.style.position = 'fixed';
+            alert.style.top = '20px';
+            alert.style.right = '20px';
+            alert.style.zIndex = '10000';
+            alert.style.minWidth = '300px';
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateX(100%)';
+            alert.style.transition = 'all 0.3s ease';
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            
+            alert.innerHTML = `
+                <i class="fas ${icon}"></i>
+                ${message}
+                <button onclick="this.parentElement.remove()" style="background: none; border: none; color: inherit; float: right; font-size: 1.2rem; cursor: pointer; margin-left: 1rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            document.body.appendChild(alert);
+            
+            // Animate in
+            setTimeout(() => {
+                alert.style.opacity = '1';
+                alert.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alert.parentElement) {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (alert.parentElement) {
+                            alert.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        // Smooth animations
+        function animateProductCards() {
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.4s ease';
+                
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }
+
+        // Call animation after products are loaded
+        const originalDisplayProducts = displayProducts;
+        displayProducts = function(productList) {
+            originalDisplayProducts(productList);
+            setTimeout(animateProductCards, 100);
+        };
+    </script>
+</body>
+</html>
+<!DOCTYPE html> 

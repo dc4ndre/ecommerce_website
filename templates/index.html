@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudolBox</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="homepage-container">
+        <!-- Header -->
+        <header class="homepage-header">
+            <div class="container">
+                <h1 class="logo">
+                    <i class="fas fa-shopping-cart"></i>
+                    BudolBox
+                </h1>
+                <nav class="header-nav">
+                    <a href="#features" class="nav-link">Features</a>
+                    <a href="#about" class="nav-link">About</a>
+                    <a href="#contact" class="nav-link">Contact</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Welcome to BudolBox</h1>
+                <p class="hero-subtitle">Your one-stop shop for everything!</p>
+                <p class="hero-description">
+                    Discover amazing products, enjoy seamless shopping experience, and get your orders delivered fast.
+                </p>
+                
+                <div class="hero-buttons">
+                    <a href="/login" class="btn btn-primary btn-large">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login
+                    </a>
+                    <a href="/register" class="btn btn-secondary btn-large">
+                        <i class="fas fa-user-plus"></i>
+                        Register
+                    </a>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-section">
+                    <div class="stat-item">
+                        <i class="fas fa-boxes"></i>
+                        <span class="stat-number">1000+</span>
+                        <span class="stat-label">Products</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-users"></i>
+                        <span class="stat-number">500+</span>
+                        <span class="stat-label">Happy Customers</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-shipping-fast"></i>
+                        <span class="stat-number">24/7</span>
+                        <span class="stat-label">Fast Delivery</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Animated Background Elements -->
+            <div class="hero-decoration">
+                <div class="floating-element" style="--delay: 0s; --duration: 6s;">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="floating-element" style="--delay: 2s; --duration: 8s;">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <div class="floating-element" style="--delay: 4s; --duration: 7s;">
+                    <i class="fas fa-star"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="features-section">
+            <div class="container">
+                <h2 class="section-title">Why Choose Our Platform?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h3>Smart Search</h3>
+                        <p>Find products instantly with our advanced search algorithm and category filtering.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Secure Shopping</h3>
+                        <p>Your data is protected with enterprise-grade security and encrypted transactions.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <h3>Fast Delivery</h3>
+                        <p>Get your orders delivered quickly with real-time tracking and status updates.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h3>24/7 Support</h3>
+                        <p>Our customer support team is always ready to help you with any questions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Access
+        <section class="admin-section">
+            <div class="container">
+                <div class="admin-card">
+                    <i class="fas fa-user-shield"></i>
+                    <h3>Admin Access</h3>
+                    <p>Manage products, orders, and users with our comprehensive admin panel.</p>
+                    <a href="/login" class="btn btn-outline">
+                        <i class="fas fa-cog"></i>
+                        Admin Login
+                    </a>
+                </div>
+            </div>
+        </section> -->
+
+        <!-- Footer -->
+        <footer class="homepage-footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-section">
+                        <h4>About BudolBox</h4>
+                        <p>Built with modern web technologies and efficient data structures for optimal performance.</p>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Features</h4>
+                        <ul>
+                            <li><i class="fas fa-check"></i> Product Management</li>
+                            <li><i class="fas fa-check"></i> Order Processing</li>
+                            <li><i class="fas fa-check"></i> User Management</li>
+                            <li><i class="fas fa-check"></i> Email Notifications</li>
+                        </ul>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Technology</h4>
+                        <ul>
+                            <li><i class="fas fa-code"></i> Python Flask</li>
+                            <li><i class="fas fa-database"></i> SQLite Database</li>
+                            <li><i class="fas fa-sitemap"></i> Data Structures</li>
+                            <li><i class="fas fa-mobile-alt"></i> Responsive Design</li>
+                        </ul>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Contact</h4>
+                        <p>
+                            <i class="fas fa-envelope"></i>
+                            info@ecommerce.com
+                        </p>
+                        <p>
+                            <i class="fas fa-phone"></i>
+                            +1 (555) 123-4567
+                        </p>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2025 BudolBox. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <i class="fas fa-shopping-cart loading-icon"></i>
+            <h2>Loading...</h2>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Page loading animation
+        window.addEventListener('load', function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            setTimeout(() => {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 300);
+            }, 1500);
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Button hover effects
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Feature cards animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

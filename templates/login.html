@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - BudolBox</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-card">
+            <h1 class="form-title">
+                <i class="fas fa-sign-in-alt"></i>
+                Login
+            </h1>
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username" class="form-label">Username or Email</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        class="form-input" 
+                        placeholder="Enter your username or email"
+                        required
+                        autocomplete="username"
+                    >
+                    <div class="form-error" id="usernameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        placeholder="Enter your password"
+                        required
+                        autocomplete="current-password"
+                    >
+                    <div class="form-error" id="passwordError"></div>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-danger" id="loginBtn">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login</span>
+                        <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+                    </button>
+                    <a href="/" class="btn btn-outline">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Home
+                    </a>
+                </div>
+            </form>
+
+            <div class="form-link">
+                <p>Don't have an account? <a href="/register">Register here</a></p>
+            </div>
+
+            <!-- Admin Login Info
+            <div class="admin-info" style="margin-top: 2rem; padding: 1rem; background: #f3f4f6; border-radius: 8px; text-align: center;">
+                <h4 style="color: var(--primary-red); margin-bottom: 0.5rem;">Admin Access</h4>
+                <p style="font-size: 0.9rem; color: #6b7280; margin-bottom: 0.5rem;">For admin login, use:</p>
+                <p style="font-size: 0.9rem; color: #374151;">
+                    <strong>Username:</strong> admin<br>
+                    <strong>Password:</strong> admin123
+                </p>
+            </div> -->
+        </div>
+    </div>
+
+    <script>
+        // Login form handling
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loginBtn = document.getElementById('loginBtn');
+            const spinner = loginBtn.querySelector('.fa-spinner');
+            const buttonText = loginBtn.querySelector('span');
+            const alertContainer = document.getElementById('alertContainer');
+            
+            // Reset previous errors
+            clearErrors();
+            clearAlerts();
+            
+            // Show loading state
+            loginBtn.disabled = true;
+            spinner.style.display = 'inline-block';
+            buttonText.textContent = 'Signing in...';
+            
+            // Get form data
+            const formData = new FormData(this);
+            const data = {
+                username: formData.get('username'),
+                password: formData.get('password')
+            };
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('success', 'Login successful! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = result.redirect;
+                    }, 1500);
+                } else {
+                    showAlert('error', result.message);
+                    resetButton();
+                }
+            } catch (error) {
+                showAlert('error', 'Connection error. Please try again.');
+                resetButton();
+            }
+            
+            function resetButton() {
+                loginBtn.disabled = false;
+                spinner.style.display = 'none';
+                buttonText.textContent = 'Login';
+            }
+        });
+        
+        // Input validation
+        document.getElementById('username').addEventListener('input', function() {
+            const value = this.value.trim();
+            if (value.length < 3) {
+                showFieldError('username', 'Username must be at least 3 characters');
+            } else {
+                clearFieldError('username');
+            }
+        });
+        
+        document.getElementById('password').addEventListener('input', function() {
+            const value = this.value;
+            if (value.length < 6) {
+                showFieldError('password', 'Password must be at least 6 characters');
+            } else {
+                clearFieldError('password');
+            }
+        });
+        
+        // Auto-focus on first input
+        document.getElementById('username').focus();
+        
+        // Enter key handling
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !document.getElementById('loginBtn').disabled) {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        // Demo login buttons
+        function loginAsAdmin() {
+            document.getElementById('username').value = 'admin';
+            document.getElementById('password').value = 'admin123';
+            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+        }
+        
+        // Utility functions
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            
+            alertContainer.innerHTML = `
+                <div class="alert ${alertClass}">
+                    <i class="fas ${icon}"></i>
+                    ${message}
+                </div>
+            `;
+        }
+        
+        function clearAlerts() {
+            document.getElementById('alertContainer').innerHTML = '';
+        }
+        
+        function showFieldError(fieldName, message) {
+            const errorElement = document.getElementById(fieldName + 'Error');
+            const inputElement = document.getElementById(fieldName);
+            
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            inputElement.style.borderColor = '#ef4444';
+        }
+        
+        function clearFieldError(fieldName) {
+            const errorElement = document.getElementById(fieldName + 'Error');
+            const inputElement = document.getElementById(fieldName);
+            
+            errorElement.style.display = 'none';
+            inputElement.style.borderColor = '#e5e7eb';
+        }
+        
+        function clearErrors() {
+            const errorElements = document.querySelectorAll('.form-error');
+            const inputElements = document.querySelectorAll('.form-input');
+            
+            errorElements.forEach(el => el.style.display = 'none');
+            inputElements.forEach(el => el.style.borderColor = '#e5e7eb');
+        }
+        
+        // Page animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const formCard = document.querySelector('.form-card');
+            formCard.style.opacity = '0';
+            formCard.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                formCard.style.transition = 'all 0.6s ease';
+                formCard.style.opacity = '1';
+                formCard.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

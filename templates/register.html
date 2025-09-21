@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - BudolBox</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-card">
+            <h1 class="form-title">
+                <i class="fas fa-user-plus"></i>
+                Register
+            </h1>
+            
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+            
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        placeholder="Enter your email address"
+                        required
+                        autocomplete="email"
+                    >
+                    <div class="form-error" id="emailError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        class="form-input" 
+                        placeholder="Choose a username"
+                        required
+                        autocomplete="username"
+                    >
+                    <div class="form-error" id="usernameError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        placeholder="Create a password (min 6 characters)"
+                        required
+                        autocomplete="new-password"
+                    >
+                    <div class="form-error" id="passwordError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        name="confirmPassword" 
+                        class="form-input" 
+                        placeholder="Confirm your password"
+                        required
+                        autocomplete="new-password"
+                    >
+                    <div class="form-error" id="confirmPasswordError"></div>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-danger" id="registerBtn">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Register</span>
+                        <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+                    </button>
+                    <a href="/" class="btn btn-outline">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Home
+                    </a>
+                </div>
+            </form>
+
+            <div class="form-link">
+                <p>Already have an account? <a href="/login">Login here</a></p>
+            </div>
+
+            <!-- Google Sign-up (Placeholder) -->
+            <div style="margin-top: 2rem;">
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <span style="color: var(--text-light);">─── OR ───</span>
+                </div>
+                <button type="button" class="btn btn-outline" id="googleSignupBtn" style="width: 100%; justify-content: center;">
+                    <i class="fab fa-google"></i>
+                    Sign up with Google
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Registration form handling
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const registerBtn = document.getElementById('registerBtn');
+            const spinner = registerBtn.querySelector('.fa-spinner');
+            const buttonText = registerBtn.querySelector('span');
+            const alertContainer = document.getElementById('alertContainer');
+            
+            // Reset previous errors
+            clearErrors();
+            clearAlerts();
+            
+            // Get form data
+            const formData = new FormData(this);
+            const data = {
+                email: formData.get('email'),
+                username: formData.get('username'),
+                password: formData.get('password'),
+                confirm_password: formData.get('confirmPassword')
+            };
+            
+            // Client-side validation
+            let isValid = true;
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(data.email)) {
+                showFieldError('email', 'Please enter a valid email address');
+                isValid = false;
+            }
+            
+            // Username validation
+            if (data.username.length < 3) {
+                showFieldError('username', 'Username must be at least 3 characters');
+                isValid = false;
+            }
+            
+            // Password validation
+            if (data.password.length < 6) {
+                showFieldError('password', 'Password must be at least 6 characters');
+                isValid = false;
+            }
+            
+            // Confirm password validation
+            if (data.password !== data.confirm_password) {
+                showFieldError('confirmPassword', 'Passwords do not match');
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            // Show loading state
+            registerBtn.disabled = true;
+            spinner.style.display = 'inline-block';
+            buttonText.textContent = 'Creating account...';
+            
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('success', result.message + ' Redirecting to login...');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    showAlert('error', result.message);
+                    resetButton();
+                }
+            } catch (error) {
+                showAlert('error', 'Connection error. Please try again.');
+                resetButton();
+            }
+            
+            function resetButton() {
+                registerBtn.disabled = false;
+                spinner.style.display = 'none';
+                buttonText.textContent = 'Register';
+            }
+        });
+        
+        // Real-time validation
+        document.getElementById('email').addEventListener('input', function() {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (this.value && !emailRegex.test(this.value)) {
+                showFieldError('email', 'Please enter a valid email address');
+            } else {
+                clearFieldError('email');
+            }
+        });
+        
+        document.getElementById('username').addEventListener('input', function() {
+            const value = this.value.trim();
+            if (value.length > 0 && value.length < 3) {
+                showFieldError('username', 'Username must be at least 3 characters');
+            } else {
+                clearFieldError('username');
+            }
+        });
+        
+        document.getElementById('password').addEventListener('input', function() {
+            const value = this.value;
+            if (value.length > 0 && value.length < 6) {
+                showFieldError('password', 'Password must be at least 6 characters');
+            } else {
+                clearFieldError('password');
+                // Check confirm password if it has a value
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                if (confirmPassword && confirmPassword !== value) {
+                    showFieldError('confirmPassword', 'Passwords do not match');
+                } else if (confirmPassword) {
+                    clearFieldError('confirmPassword');
+                }
+            }
+        });
+        
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const value = this.value;
+            
+            if (value && value !== password) {
+                showFieldError('confirmPassword', 'Passwords do not match');
+            } else {
+                clearFieldError('confirmPassword');
+            }
+        });
+        
+        // Google signup placeholder
+        document.getElementById('googleSignupBtn').addEventListener('click', function() {
+            showAlert('info', 'Google sign-up integration would be implemented here. For now, please use regular registration.');
+        });
+        
+        // Auto-focus on first input
+        document.getElementById('email').focus();
+        
+        // Utility functions
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertClass = {
+                'success': 'alert-success',
+                'error': 'alert-error', 
+                'info': 'alert-info',
+                'warning': 'alert-warning'
+            }[type] || 'alert-info';
+            
+            const icon = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-circle',
+                'info': 'fa-info-circle',
+                'warning': 'fa-exclamation-triangle'
+            }[type] || 'fa-info-circle';
+            
+            alertContainer.innerHTML = `
+                <div class="alert ${alertClass}">
+                    <i class="fas ${icon}"></i>
+                    ${message}
+                </div>
+            `;
+            
+            // Scroll to top to show alert
+            alertContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function clearAlerts() {
+            document.getElementById('alertContainer').innerHTML = '';
+        }
+        
+        function showFieldError(fieldName, message) {
+            const errorElement = document.getElementById(fieldName + 'Error');
+            const inputElement = document.getElementById(fieldName);
+            
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            inputElement.style.borderColor = '#ef4444';
+        }
+        
+        function clearFieldError(fieldName) {
+            const errorElement = document.getElementById(fieldName + 'Error');
+            const inputElement = document.getElementById(fieldName);
+            
+            errorElement.style.display = 'none';
+            inputElement.style.borderColor = '#e5e7eb';
+        }
+        
+        function clearErrors() {
+            const errorElements = document.querySelectorAll('.form-error');
+            const inputElements = document.querySelectorAll('.form-input');
+            
+            errorElements.forEach(el => el.style.display = 'none');
+            inputElements.forEach(el => el.style.borderColor = '#e5e7eb');
+        }
+        
+        // Page animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const formCard = document.querySelector('.form-card');
+            formCard.style.opacity = '0';
+            formCard.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                formCard.style.transition = 'all 0.6s ease';
+                formCard.style.opacity = '1';
+                formCard.style.transform = 'translateY(0)';
+            }, 100);
+        });
+        
+        // Password strength indicator
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const strengthIndicator = document.getElementById('passwordStrength') || createPasswordStrengthIndicator();
+            
+            let strength = 0;
+            let strengthText = '';
+            let strengthColor = '';
+            
+            if (password.length >= 6) strength += 1;
+            if (password.match(/[a-z]/)) strength += 1;
+            if (password.match(/[A-Z]/)) strength += 1;
+            if (password.match(/[0-9]/)) strength += 1;
+            if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
+            
+            switch (strength) {
+                case 0:
+                case 1:
+                    strengthText = 'Weak';
+                    strengthColor = '#ef4444';
+                    break;
+                case 2:
+                case 3:
+                    strengthText = 'Medium';
+                    strengthColor = '#f59e0b';
+                    break;
+                case 4:
+                case 5:
+                    strengthText = 'Strong';
+                    strengthColor = '#10b981';
+                    break;
+            }
+            
+            if (password.length === 0) {
+                strengthIndicator.style.display = 'none';
+            } else {
+                strengthIndicator.style.display = 'block';
+                strengthIndicator.textContent = `Password strength: ${strengthText}`;
+                strengthIndicator.style.color = strengthColor;
+            }
+        });
+        
+        function createPasswordStrengthIndicator() {
+            const indicator = document.createElement('div');
+            indicator.id = 'passwordStrength';
+            indicator.style.fontSize = '0.8rem';
+            indicator.style.marginTop = '0.25rem';
+            indicator.style.display = 'none';
+            
+            const passwordField = document.getElementById('password');
+            passwordField.parentNode.appendChild(indicator);
+            
+            return indicator;
+        }
+    </script>
+</body>
+</html>

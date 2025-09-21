@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account - BudolBox</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <nav class="dashboard-nav">
+                <div class="nav-brand">
+                    <i class="fas fa-user"></i>
+                    Account Settings
+                </div>
+                
+                <div class="nav-menu">
+                    <a href="/dashboard" class="btn btn-outline">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+                
+                <div class="nav-user">
+                    <span>{{ user.username }}</span>
+                    <a href="/logout" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </a>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-content">
+            <div class="content-header">
+                <h1 class="content-title">Account Settings</h1>
+                <p class="content-subtitle">Manage your profile information and preferences</p>
+            </div>
+
+            <!-- Account Information -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Profile Information</h3>
+                    <p class="card-subtitle">Update your account details</p>
+                </div>
+                <div class="card-body">
+                    <div id="accountAlerts"></div>
+                    
+                    <form id="accountForm">
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" id="accountUsername" class="form-input" value="{{ user.username }}" required>
+                            <small style="color: var(--text-light);">Your username must be unique</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-input" value="{{ user.email }}" disabled>
+                            <small style="color: var(--text-light);">Email address cannot be changed</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" id="currentPassword" class="form-input" placeholder="Enter current password to save changes" required>
+                            <small style="color: var(--text-light);">Required to confirm any changes</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">New Password (Optional)</label>
+                            <input type="password" id="newPassword" class="form-input" placeholder="Leave blank to keep current password">
+                            <small style="color: var(--text-light);">Minimum 6 characters</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm new password">
+                            <div class="form-error" id="passwordError" style="display: none;"></div>
+                        </div>
+                        
+                        <div class="card-actions">
+                            <button type="submit" class="btn btn-success" id="saveBtn">
+                                <i class="fas fa-save"></i>
+                                <span>Save Changes</span>
+                                <i class="fas fa-spinner fa-spin" style="display: none;"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Orders</h3>
+                    <p class="card-subtitle">Your latest purchase history</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table" id="ordersTable">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Date</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Orders will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Browsing History -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Recently Viewed Products</h3>
+                    <p class="card-subtitle">Products you've recently looked at</p>
+                </div>
+                <div class="card-body">
+                    <div id="browsingHistory">
+                        <!-- History will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Account Statistics</h3>
+                    <p class="card-subtitle">Your shopping summary</p>
+                </div>
+                <div class="card-body">
+                    <div class="features-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                        <div class="feature-card">
+                            <div class="feature-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <h3 id="totalOrders">-</h3>
+                            <p>Total Orders</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                                <i class="fas fa-peso-sign"></i>
+                            </div>
+                            <h3 id="totalSpent">₱-</h3>
+                            <p>Total Spent</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <h3 id="memberSince">{{ user.created_at[:4] }}</h3>
+                            <p>Member Since</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAccountData();
+            loadRecentOrders();
+            loadBrowsingHistory();
+        });
+
+        // Account form handling
+        document.getElementById('accountForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const saveBtn = document.getElementById('saveBtn');
+            const spinner = saveBtn.querySelector('.fa-spinner');
+            const buttonText = saveBtn.querySelector('span');
+            
+            const username = document.getElementById('accountUsername').value;
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Validate form
+            if (!username || !currentPassword) {
+                showAlert('error', 'Username and current password are required');
+                return;
+            }
+
+            if (newPassword && newPassword !== confirmPassword) {
+                document.getElementById('passwordError').textContent = 'Passwords do not match';
+                document.getElementById('passwordError').style.display = 'block';
+                return;
+            } else {
+                document.getElementById('passwordError').style.display = 'none';
+            }
+
+            if (newPassword && newPassword.length < 6) {
+                document.getElementById('passwordError').textContent = 'New password must be at least 6 characters';
+                document.getElementById('passwordError').style.display = 'block';
+                return;
+            }
+
+            // Show loading state
+            saveBtn.disabled = true;
+            spinner.style.display = 'inline-block';
+            buttonText.textContent = 'Saving...';
+
+            try {
+                const response = await fetch('/api/account', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('success', result.message);
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                } else {
+                    showAlert('error', result.message);
+                }
+            } catch (error) {
+                console.error('Error updating account:', error);
+                showAlert('error', 'Failed to update account. Please try again.');
+            } finally {
+                // Reset button state
+                saveBtn.disabled = false;
+                spinner.style.display = 'none';
+                buttonText.textContent = 'Save Changes';
+            }
+        });
+
+        // Password confirmation validation
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = this.value;
+            const errorElement = document.getElementById('passwordError');
+
+            if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+                errorElement.textContent = 'Passwords do not match';
+                errorElement.style.display = 'block';
+                this.style.borderColor = '#ef4444';
+            } else {
+                errorElement.style.display = 'none';
+                this.style.borderColor = '#e5e7eb';
+            }
+        });
+
+        // Load account data
+        // Load account data
+        async function loadAccountData() {
+            // This would typically come from the server
+            // For now, we'll simulate some data
+            document.getElementById('totalOrders').textContent = '0';
+            document.getElementById('totalSpent').textContent = '₱0.00';
+            
+        }
+
+        // Load recent orders
+        async function loadRecentOrders() {
+            try {
+                const response = await fetch('/api/orders');
+                const orders = await response.json();
+                
+                const tbody = document.querySelector('#ordersTable tbody');
+                
+                if (orders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-light);">No orders found</td></tr>';
+                    return;
+                }
+
+                // Update statistics
+                // Update statistics
+                // Update statistics
+                const totalSpent = orders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+                document.getElementById('totalOrders').textContent = orders.length;
+                document.getElementById('totalSpent').textContent = `₱${totalSpent.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+                tbody.innerHTML = orders.map(order => `
+                    <tr>
+                        <td>#${order.id}</td>
+                        <td>${new Date(order.date).toLocaleDateString()}</td>
+                        <td>${order.total_formatted || '₱' + order.total}</td>
+                        <td><span class="badge badge-${order.status}">${order.status}</span></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.querySelector('#ordersTable tbody').innerHTML = 
+                    '<tr><td colspan="4" style="text-align: center; color: var(--text-light);">Error loading orders</td></tr>';
+            }
+        }
+
+        // Load browsing history
+        // Load browsing history
+        async function loadBrowsingHistory() {
+            try {
+                const response = await fetch('/api/browsing_history');
+                const history = await response.json();
+                
+                const historyContainer = document.getElementById('browsingHistory');
+                
+                if (!history.items || history.items.length === 0) {
+                    historyContainer.innerHTML = '<p style="color: var(--text-light); text-align: center; padding: 2rem;">No browsing history yet</p>';
+                    return;
+                }
+
+                historyContainer.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                        ${history.items.map(item => `
+                            <div class="product-card" style="cursor: pointer;" onclick="viewProduct(${item.product_id})">
+                                <div class="product-image" style="height: 150px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 1rem;">
+                                    ${item.image_path && item.image_path.trim() !== '' ? 
+                                        `<img src="/static/images/${item.image_path}" alt="${item.product_name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` :
+                                        `<i class="fas fa-image" style="font-size: 2rem; color: #9ca3af;"></i>`
+                                    }
+                                </div>
+                                <div class="product-info">
+                                    <div class="product-name" style="font-weight: 600; margin-bottom: 0.5rem;">${item.product_name}</div>
+                                    <div style="color: var(--primary-red); font-weight: bold; margin-bottom: 0.5rem;">
+                                        ${item.price_formatted || '₱' + (item.price || 0).toFixed(2)}
+                                    </div>
+                                    <small style="color: var(--text-light);">
+                                        Viewed: ${new Date(item.timestamp).toLocaleString()}
+                                    </small>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading browsing history:', error);
+                document.getElementById('browsingHistory').innerHTML = 
+                    '<p style="color: var(--text-light); text-align: center; padding: 2rem;">Error loading history</p>';
+            }
+        }
+
+        // View product (redirect to dashboard)
+        function viewProduct(productId) {
+            window.location.href = `/dashboard?product=${productId}`;
+        }
+
+        // Utility functions
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('accountAlerts');
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            
+            alertContainer.innerHTML = `
+                <div class="alert ${alertClass}">
+                    <i class="fas ${icon}"></i>
+                    ${message}
+                </div>
+            `;
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        // Form animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+        });
+    </script>
+</body>
+</html>
