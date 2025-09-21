@@ -395,46 +395,44 @@
             });
         }
 
-    // Fixed createProductCard function for customer_dashboard.html
         function createProductCard(product) {
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        
-        const stockStatus = product.stock > 0 ? 
-            `<span style="color: #10b981;">In Stock (${product.stock})</span>` : 
-            '<span style="color: #ef4444;">Out of Stock</span>';
-        
-        // Fixed: Check if product has image and display it properly
-        const productImage = product.image_path && product.image_path.trim() !== '' ? 
-            `<img src="/static/images/${product.image_path}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` :
-            `<i class="fas fa-image" style="font-size: 3rem; color: #9ca3af;"></i>`;
-        
-        card.innerHTML = `
-            <div class="product-image" style="height: 200px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                ${productImage}
-            </div>
-            <div class="product-info">
-                <h3 class="product-name">${product.name}</h3>
-                <div class="product-price">${product.price_formatted || '₱' + product.price.toFixed(2)}</div>
-                <div class="product-stock">${stockStatus}</div>
-                <div class="product-actions">
-                    <button class="btn btn-outline" onclick="viewProduct(${product.id})">
-                        <i class="fas fa-eye"></i>
-                        View
-                    </button>
-                    ${product.stock > 0 ? 
-                        `<button class="btn btn-danger" onclick="quickAddToCart(${product.id})">
-                            <i class="fas fa-cart-plus"></i>
-                            Add to Cart
-                        </button>` : 
-                        '<button class="btn" disabled style="background: #9ca3af; cursor: not-allowed;">Out of Stock</button>'
-                    }
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            
+            const stockStatus = product.stock > 0 ? 
+                `<span style="color: #10b981;">In Stock (${product.stock})</span>` : 
+                '<span style="color: #ef4444;">Out of Stock</span>';
+            
+            const productImage = product.image_path && product.image_path.trim() !== '' ? 
+                `<img src="/static/images/${product.image_path}" alt="${product.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` :
+                `<i class="fas fa-image" style="font-size: 3rem; color: #9ca3af;"></i>`;
+            
+            card.innerHTML = `
+                <div class="product-image" style="height: 200px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    ${productImage}
                 </div>
-            </div>
-        `;
-        card.addEventListener('click', () => viewProduct(product.id));
-        return card;
-    }
+                <div class="product-info">
+                    <h3 class="product-name">${product.name}</h3>
+                    <div class="product-price">${product.price_formatted || '₱' + product.price.toFixed(2)}</div>
+                    <div class="product-stock">${stockStatus}</div>
+                    <div class="product-actions">
+                        <button class="btn btn-outline" onclick="viewProduct(${product.id})">
+                            <i class="fas fa-eye"></i>
+                            View
+                        </button>
+                        ${product.stock > 0 ? 
+                            `<button class="btn btn-danger" onclick="quickAddToCart(${product.id})">
+                                <i class="fas fa-cart-plus"></i>
+                                Add to Cart
+                            </button>` : 
+                            '<button class="btn" disabled style="background: #9ca3af; cursor: not-allowed;">Out of Stock</button>'
+                        }
+                    </div>
+                </div>
+            `;
+            card.addEventListener('click', () => viewProduct(product.id));
+            return card;
+        }
 
         // View product details
         async function viewProduct(productId) {
@@ -451,7 +449,6 @@
             }
         }
 
-        // Fixed showProductModal function for customer_dashboard.html
         function showProductModal(product) {
             const modal = document.getElementById('productModal');
             const modalName = document.getElementById('modalProductName');
@@ -463,7 +460,6 @@
                 `<span style="color: #10b981; font-weight: 600;">In Stock (${product.stock} available)</span>` : 
                 '<span style="color: #ef4444; font-weight: 600;">Out of Stock</span>';
             
-            // Fixed: Proper image display in modal
             const productImage = product.image_path && product.image_path.trim() !== '' ? 
                 `<img src="/static/images/${product.image_path}" alt="${product.name}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 8px;">` :
                 `<div style="height: 300px; border-radius: 8px; background: #f3f4f6; display: flex; align-items: center; justify-content: center;">
@@ -476,7 +472,7 @@
                         ${productImage}
                     </div>
                     <div>
-                        <h2 style="color: var(--primary-red); margin-bottom: 1rem;">₱${product.price.toFixed(2)}</h2>
+                        <h2 style="color: var(--primary-red); margin-bottom: 1rem;">${product.price_formatted}</h2>
                         <p style="margin-bottom: 1rem;"><strong>Category:</strong> ${product.category || 'Uncategorized'}</p>
                         <p style="margin-bottom: 1rem;"><strong>Stock:</strong> ${stockStatus}</p>
                         
@@ -522,7 +518,7 @@
                                         }
                                     </div>
                                     <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">${rec.name}</h4>
-                                    <p style="color: var(--primary-red); font-weight: 600;">${rec.price.toFixed(2)}</p>
+                                    <p style="color: var(--primary-red); font-weight: 600;">${rec.price_formatted}</p>
                                 </div>
                             `).join('')}
                         </div>
@@ -532,6 +528,7 @@
             
             modal.classList.add('active');
         }
+
         // Cart functionality
         async function quickAddToCart(productId) {
             await addToCart(productId, 1);
@@ -618,6 +615,10 @@
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th style="width: 50px;">
+                                        <input type="checkbox" id="selectAllItems" onchange="toggleAllItems()" 
+                                               style="transform: scale(1.2);">
+                                    </th>
                                     <th>Product</th>
                                     <th>Price</th>
                                     <th>Quantity</th>
@@ -629,12 +630,22 @@
                                 ${cartData.items.map(item => `
                                     <tr>
                                         <td>
+                                            <input type="checkbox" class="item-checkbox" 
+                                                   data-product-id="${item.product_id}"
+                                                   data-price="${item.price}"
+                                                   data-quantity="${item.quantity}"
+                                                   onchange="updateCheckoutTotal()"
+                                                   style="transform: scale(1.2);"
+                                                   checked>
+                                        </td>
+                                        <td>
                                             <div style="display: flex; align-items: center; gap: 1rem;">
                                                 <div style="width: 60px; height: 60px; background: var(--bg-light); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                                <img src="/static/images/${item.image_path}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover;">
-                                            </div>
-
-
+                                                    ${item.image_path && item.image_path.trim() !== '' ? 
+                                                        `<img src="/static/images/${item.image_path}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover;">` :
+                                                        `<i class="fas fa-image" style="color: var(--text-light);"></i>`
+                                                    }
+                                                </div>
                                                 <div>
                                                     <div style="font-weight: 600;">${item.name}</div>
                                                 </div>
@@ -665,24 +676,377 @@
                     </div>
                     
                     <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e5e7eb;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                            <h3>Total: ${cartData.total_formatted}</h3>
+                        <!-- Selected items summary -->
+                        <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                                <div style="flex: 1;">
+                                    <span id="selectedItemsText" style="font-weight: 600;">All items selected</span>
+                                    <span id="selectedItemsCount" style="color: var(--text-light); font-size: 0.9rem;">(${cartData.items.length} items)</span>
+                                </div>
+                                <div style="font-size: 1.2rem; font-weight: bold; color: var(--primary-red);">
+                                    Checkout Total: <span id="checkoutTotal">${cartData.total_formatted}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div style="display: flex; gap: 1rem;">
                                 <button class="btn btn-outline" onclick="clearCart()">
                                     <i class="fas fa-trash"></i>
-                                    Clear Cart
+                                    Clear All Cart
                                 </button>
-                                <button class="btn btn-danger" onclick="proceedToCheckout()">
-                                    <i class="fas fa-credit-card"></i>
-                                    Checkout
+                                <button class="btn btn-outline" onclick="removeSelectedItems()">
+                                    <i class="fas fa-minus"></i>
+                                    Remove Selected
                                 </button>
                             </div>
+                            <button class="btn btn-danger" onclick="proceedToCheckoutSelected()" id="checkoutSelectedBtn">
+                                <i class="fas fa-credit-card"></i>
+                                Checkout Selected (<span id="checkoutItemCount">${cartData.items.length}</span>)
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Initialize checkout total calculation
+                setTimeout(() => {
+                    updateCheckoutTotal();
+                }, 100);
+            }
+            
+            modal.classList.add('active');
+        }
+
+        // Toggle all items selection
+        function toggleAllItems() {
+            const selectAll = document.getElementById('selectAllItems');
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+            
+            itemCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+            
+            updateCheckoutTotal();
+        }
+
+        // Update checkout total based on selected items
+        function updateCheckoutTotal() {
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+            const selectAllCheckbox = document.getElementById('selectAllItems');
+            const allCheckboxes = document.querySelectorAll('.item-checkbox');
+            
+            let selectedTotal = 0;
+            let selectedCount = 0;
+            
+            itemCheckboxes.forEach(checkbox => {
+                const price = parseFloat(checkbox.dataset.price);
+                const quantity = parseInt(checkbox.dataset.quantity);
+                selectedTotal += price * quantity;
+                selectedCount++;
+            });
+            
+            // Update select all checkbox state
+            if (selectedCount === 0) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = false;
+            } else if (selectedCount === allCheckboxes.length) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = true;
+            } else {
+                selectAllCheckbox.indeterminate = true;
+            }
+            
+            // Update display
+            document.getElementById('checkoutTotal').textContent = `₱${selectedTotal.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('checkoutItemCount').textContent = selectedCount;
+            
+            const selectedText = document.getElementById('selectedItemsText');
+            const selectedCountText = document.getElementById('selectedItemsCount');
+            const checkoutBtn = document.getElementById('checkoutSelectedBtn');
+            
+            if (selectedCount === 0) {
+                selectedText.textContent = 'No items selected';
+                selectedCountText.textContent = '';
+                checkoutBtn.disabled = true;
+                checkoutBtn.style.opacity = '0.5';
+            } else if (selectedCount === allCheckboxes.length) {
+                selectedText.textContent = 'All items selected';
+                selectedCountText.textContent = `(${selectedCount} items)`;
+                checkoutBtn.disabled = false;
+                checkoutBtn.style.opacity = '1';
+            } else {
+                selectedText.textContent = 'Selected items';
+                selectedCountText.textContent = `(${selectedCount} of ${allCheckboxes.length} items)`;
+                checkoutBtn.disabled = false;
+                checkoutBtn.style.opacity = '1';
+            }
+        }
+
+        // Remove only selected items
+        async function removeSelectedItems() {
+            const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                showAlert('error', 'No items selected to remove');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to remove ${selectedCheckboxes.length} selected item(s) from your cart?`)) {
+                try {
+                    const promises = Array.from(selectedCheckboxes).map(checkbox => {
+                        const productId = checkbox.dataset.productId;
+                        return fetch('/api/cart', {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                product_id: parseInt(productId)
+                            })
+                        });
+                    });
+                    
+                    await Promise.all(promises);
+                    
+                    showCartModal(); // Refresh cart modal
+                    loadCart(); // Update cart count
+                    showAlert('success', `${selectedCheckboxes.length} item(s) removed from cart`);
+                } catch (error) {
+                    console.error('Error removing selected items:', error);
+                    showAlert('error', 'Failed to remove items');
+                }
+            }
+        }
+
+        // Proceed to checkout with only selected items
+        function proceedToCheckoutSelected() {
+            const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                showAlert('error', 'Please select at least one item to checkout');
+                return;
+            }
+            
+            // Store selected items data for checkout
+            const selectedItems = Array.from(selectedCheckboxes).map(checkbox => ({
+                product_id: parseInt(checkbox.dataset.productId),
+                quantity: parseInt(checkbox.dataset.quantity),
+                price: parseFloat(checkbox.dataset.price)
+            }));
+            
+            // Calculate total for selected items
+            const selectedTotal = selectedItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+            
+            // Store in a global variable for the checkout process
+            window.selectedCheckoutItems = {
+                items: selectedItems,
+                total: selectedTotal
+            };
+            
+            document.getElementById('cartModal').classList.remove('active');
+            showCheckoutModal(true); // Pass true to indicate selective checkout
+        }
+
+        // Enhanced checkout modal for selective checkout
+        function showCheckoutModal(isSelectiveCheckout = false) {
+            const modal = document.getElementById('checkoutModal');
+            const modalBody = document.getElementById('checkoutModalBody');
+            
+            let checkoutSummary = '';
+            let totalAmount = 0;
+            let itemCount = 0;
+            
+            if (isSelectiveCheckout && window.selectedCheckoutItems) {
+                totalAmount = window.selectedCheckoutItems.total;
+                itemCount = window.selectedCheckoutItems.items.length;
+                checkoutSummary = `
+                    <div class="card" style="margin-bottom: 1rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">Order Summary</h3>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Selected Items:</strong> ${itemCount} item(s)</p>
+                            <p><strong>Total Amount:</strong> <span style="color: var(--primary-red); font-weight: bold; font-size: 1.2rem;">₱${totalAmount.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></p>
                         </div>
                     </div>
                 `;
             }
             
+            modalBody.innerHTML = `
+                ${checkoutSummary}
+                <form id="checkoutForm">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Shipping Information</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Full Address *</label>
+                                <textarea 
+                                    name="address" 
+                                    class="form-input" 
+                                    rows="3" 
+                                    placeholder="Enter your complete delivery address"
+                                    required
+                                ></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Contact Number *</label>
+                                <input 
+                                    type="tel" 
+                                    name="contact" 
+                                    class="form-input" 
+                                    placeholder="Enter your phone number"
+                                    required
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Special Instructions (Optional)</label>
+                                <textarea 
+                                    name="notes" 
+                                    class="form-input" 
+                                    rows="2" 
+                                    placeholder="Any special delivery instructions"
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="margin-top: 1rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">Payment Method</h3>
+                        </div>
+                        <div class="card-body">
+                            <p style="color: var(--text-light);">
+                                <i class="fas fa-money-bill-wave"></i>
+                                Cash on Delivery - Pay when you receive your order
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" onclick="document.getElementById('checkoutModal').classList.remove('active')">
+                            Back to Cart
+                        </button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-check"></i>
+                            ${isSelectiveCheckout ? `Place Order (${itemCount} items)` : 'Place Order'}
+                        </button>
+                    </div>
+                </form>
+            `;
+            
+            // Setup checkout form handler
+            document.getElementById('checkoutForm').addEventListener('submit', isSelectiveCheckout ? handleSelectiveCheckout : handleRegularCheckout);
+            
             modal.classList.add('active');
+        }
+
+        // Handle selective checkout
+        async function handleSelectiveCheckout(e) {
+            e.preventDefault();
+            
+            if (!window.selectedCheckoutItems) {
+                showAlert('error', 'No items selected for checkout');
+                return;
+            }
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            
+            const data = {
+                address: formData.get('address'),
+                contact: formData.get('contact'),
+                notes: formData.get('notes') || '',
+                selected_items: window.selectedCheckoutItems.items
+            };
+            
+            // Debug logging
+            console.log('Calling selective checkout with data:', data);
+            console.log('Selected items:', data.selected_items);
+            
+            // Disable submit button
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            try {
+                const response = await fetch('/api/checkout_selective', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('checkoutModal').classList.remove('active');
+                    showAlert('success', result.message);
+                    loadCart(); // Update cart count
+                    
+                    // Clear selected items
+                    window.selectedCheckoutItems = null;
+                } else {
+                    showAlert('error', result.message);
+                }
+            } catch (error) {
+                console.error('Error during selective checkout:', error);
+                showAlert('error', 'Failed to process order. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+
+        // Handle regular checkout (all items in cart)
+        async function handleRegularCheckout(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            
+            const data = {
+                address: formData.get('address'),
+                contact: formData.get('contact'),
+                notes: formData.get('notes') || ''
+            };
+            
+            // Disable submit button
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            try {
+                const response = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('checkoutModal').classList.remove('active');
+                    showAlert('success', result.message);
+                    loadCart(); // Update cart count
+                } else {
+                    showAlert('error', result.message);
+                }
+            } catch (error) {
+                console.error('Error during checkout:', error);
+                showAlert('error', 'Failed to process order. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
         }
 
         // Cart management functions
@@ -754,132 +1118,6 @@
             }
         }
 
-        // Checkout
-        function proceedToCheckout() {
-            document.getElementById('cartModal').classList.remove('active');
-            showCheckoutModal();
-        }
-
-        function showCheckoutModal() {
-            const modal = document.getElementById('checkoutModal');
-            const modalBody = document.getElementById('checkoutModalBody');
-            
-            modalBody.innerHTML = `
-                <form id="checkoutForm">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Shipping Information</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label class="form-label">Full Address *</label>
-                                <textarea 
-                                    name="address" 
-                                    class="form-input" 
-                                    rows="3" 
-                                    placeholder="Enter your complete delivery address"
-                                    required
-                                ></textarea>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Contact Number *</label>
-                                <input 
-                                    type="tel" 
-                                    name="contact" 
-                                    class="form-input" 
-                                    placeholder="Enter your phone number"
-                                    required
-                                >
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Special Instructions (Optional)</label>
-                                <textarea 
-                                    name="notes" 
-                                    class="form-input" 
-                                    rows="2" 
-                                    placeholder="Any special delivery instructions"
-                                ></textarea>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="margin-top: 1rem;">
-                        <div class="card-header">
-                            <h3 class="card-title">Payment Method</h3>
-                        </div>
-                        <div class="card-body">
-                            <p style="color: var(--text-light);">
-                                <i class="fas fa-money-bill-wave"></i>
-                                Cash on Delivery - Pay when you receive your order
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline" onclick="document.getElementById('checkoutModal').classList.remove('active')">
-                            Back to Cart
-                        </button>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-check"></i>
-                            Place Order
-                        </button>
-                    </div>
-                </form>
-            `;
-            
-            // Setup checkout form handler
-            document.getElementById('checkoutForm').addEventListener('submit', handleCheckout);
-            
-            modal.classList.add('active');
-        }
-
-        async function handleCheckout(e) {
-            e.preventDefault();
-            
-            const form = e.target;
-            const formData = new FormData(form);
-            
-            const data = {
-                address: formData.get('address'),
-                contact: formData.get('contact'),
-                notes: formData.get('notes') || ''
-            };
-            
-            // Disable submit button
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            
-            try {
-                const response = await fetch('/api/checkout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    document.getElementById('checkoutModal').classList.remove('active');
-                    showAlert('success', result.message);
-                    loadCart(); // Update cart count
-                } else {
-                    showAlert('error', result.message);
-                }
-            } catch (error) {
-                console.error('Error during checkout:', error);
-                showAlert('error', 'Failed to process order. Please try again.');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            }
-        }
-
         // Load browsing history
         async function loadBrowsingHistory() {
             try {
@@ -894,44 +1132,43 @@
         }
 
         function displayBrowsingHistory(historyData) {
-        const historyCard = document.getElementById('historyCard');
-        const historyContainer = document.getElementById('browsingHistory');
-        
-        if (!historyData.items || historyData.items.length === 0) {
-            historyCard.style.display = 'none';
-            return;
+            const historyCard = document.getElementById('historyCard');
+            const historyContainer = document.getElementById('browsingHistory');
+            
+            if (!historyData.items || historyData.items.length === 0) {
+                historyCard.style.display = 'none';
+                return;
+            }
+            
+            historyCard.style.display = 'block';
+            historyContainer.innerHTML = '';
+            
+            historyData.items.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'product-card';
+                historyItem.style.cursor = 'pointer';
+                historyItem.onclick = () => viewProduct(item.product_id);
+                
+                const productImage = item.image_path && item.image_path.trim() !== '' ? 
+                    `<img src="/static/images/${item.image_path}" alt="${item.product_name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` :
+                    `<i class="fas fa-image" style="font-size: 2rem; color: #9ca3af;"></i>`;
+                
+                historyItem.innerHTML = `
+                    <div class="product-image" style="height: 120px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                        ${productImage}
+                    </div>
+                    <div class="product-info" style="padding: 1rem;">
+                        <h4 class="product-name" style="font-size: 1rem; margin-bottom: 0.5rem;">${item.product_name}</h4>
+                        <p style="font-size: 0.9rem; color: var(--primary-red); font-weight: bold; margin-bottom: 0.5rem;">
+                            ${item.price_formatted || '₱' + (item.price || 0).toFixed(2)}
+                        </p>
+                        <p style="font-size: 0.8rem; color: var(--text-light);">Recently viewed</p>
+                    </div>
+                `;
+                
+                historyContainer.appendChild(historyItem);
+            });
         }
-        
-        historyCard.style.display = 'block';
-        historyContainer.innerHTML = '';
-        
-        historyData.items.forEach(item => {
-            const historyItem = document.createElement('div');
-            historyItem.className = 'product-card';
-            historyItem.style.cursor = 'pointer';
-            historyItem.onclick = () => viewProduct(item.product_id);
-            
-            // Fixed: Display image and price properly
-            const productImage = item.image_path && item.image_path.trim() !== '' ? 
-                `<img src="/static/images/${item.image_path}" alt="${item.product_name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` :
-                `<i class="fas fa-image" style="font-size: 2rem; color: #9ca3af;"></i>`;
-            
-            historyItem.innerHTML = `
-                <div class="product-image" style="height: 120px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                    ${productImage}
-                </div>
-                <div class="product-info" style="padding: 1rem;">
-                    <h4 class="product-name" style="font-size: 1rem; margin-bottom: 0.5rem;">${item.product_name}</h4>
-                    <p style="font-size: 0.9rem; color: var(--primary-red); font-weight: bold; margin-bottom: 0.5rem;">
-                        ${item.price_formatted || '₱' + (item.price || 0).toFixed(2)}
-                    </p>
-                    <p style="font-size: 0.8rem; color: var(--text-light);">Recently viewed</p>
-                </div>
-            `;
-            
-            historyContainer.appendChild(historyItem);
-        });
-    }
 
         // Utility function to show alerts
         function showAlert(type, message) {
@@ -1003,4 +1240,3 @@
     </script>
 </body>
 </html>
-<!DOCTYPE html> 

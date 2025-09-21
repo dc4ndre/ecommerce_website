@@ -264,16 +264,14 @@
         });
 
         // Load account data
-        // Load account data
         async function loadAccountData() {
             // This would typically come from the server
             // For now, we'll simulate some data
             document.getElementById('totalOrders').textContent = '0';
             document.getElementById('totalSpent').textContent = '₱0.00';
-            
         }
 
-        // Load recent orders
+        // Load recent orders with corrected total spent calculation
         async function loadRecentOrders() {
             try {
                 const response = await fetch('/api/orders');
@@ -286,21 +284,30 @@
                     return;
                 }
 
+                // Calculate statistics with proper filtering
+                const completedStatuses = ['delivered']; // Only count delivered orders
+                const completedOrders = orders.filter(order => completedStatuses.includes(order.status.toLowerCase()));
+                
+                // Total spent = only successfully completed orders
+                const totalSpent = completedOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+                
+                // Total orders = all orders (for tracking purposes)
+                const totalOrderCount = orders.length;
+                
                 // Update statistics
-                // Update statistics
-                // Update statistics
-                const totalSpent = orders.reduce((sum, order) => sum + parseFloat(order.total), 0);
-                document.getElementById('totalOrders').textContent = orders.length;
+                document.getElementById('totalOrders').textContent = totalOrderCount;
                 document.getElementById('totalSpent').textContent = `₱${totalSpent.toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 
+                // Display all orders in table with original simple status styling
                 tbody.innerHTML = orders.map(order => `
                     <tr>
                         <td>#${order.id}</td>
                         <td>${new Date(order.date).toLocaleDateString()}</td>
-                        <td>${order.total_formatted || '₱' + order.total}</td>
+                        <td>${order.total_formatted || '₱' + parseFloat(order.total).toFixed(2)}</td>
                         <td><span class="badge badge-${order.status}">${order.status}</span></td>
                     </tr>
                 `).join('');
+                
             } catch (error) {
                 console.error('Error loading orders:', error);
                 document.querySelector('#ordersTable tbody').innerHTML = 
@@ -308,7 +315,6 @@
             }
         }
 
-        // Load browsing history
         // Load browsing history
         async function loadBrowsingHistory() {
             try {

@@ -12,7 +12,8 @@ import uuid
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here_change_this'
+# Generate a secure random secret key - CHANGE THIS TO YOUR OWN SECURE KEY
+app.secret_key = 'your-super-secure-secret-key-change-this-to-something-random-and-long-2024'
 
 # Create instance directory for database
 INSTANCE_PATH = os.path.join(os.path.dirname(__file__), 'instance')
@@ -20,7 +21,7 @@ os.makedirs(INSTANCE_PATH, exist_ok=True)
 
 # Configure paths
 app.config['DATABASE_PATH'] = os.path.join(INSTANCE_PATH, 'ecommerce.db')
-app.config['UPLOAD_FOLDER'] = 'static/images'
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'static', 'images')
 
 # Create upload directory if it doesn't exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -203,56 +204,6 @@ class OrderQueue:
     def get_all_orders(self):
         return self.orders.copy()
 
-class CartStack:
-    """Stack implementation for shopping cart"""
-    def __init__(self):
-        self.items = []  # Stack of {'product_id': id, 'quantity': qty}
-    
-    def push(self, product_id, quantity):
-        # Check if product already exists
-        for item in self.items:
-            if item['product_id'] == product_id:
-                item['quantity'] += quantity
-                return
-        self.items.append({'product_id': product_id, 'quantity': quantity})
-    
-    def pop(self):
-        if self.items:
-            return self.items.pop()
-        return None
-    
-    def peek(self):
-        if self.items:
-            return self.items[-1]
-        return None
-    
-    def remove_product(self, product_id):
-        self.items = [item for item in self.items if item['product_id'] != product_id]
-    
-    def update_quantity(self, product_id, quantity):
-        for item in self.items:
-            if item['product_id'] == product_id:
-                if quantity <= 0:
-                    self.remove_product(product_id)
-                else:
-                    item['quantity'] = quantity
-                break
-    
-    def get_cart_items(self):
-        return self.items.copy()
-    
-    def clear(self):
-        self.items = []
-    
-    def get_total_items(self):
-        return sum(item['quantity'] for item in self.items)
-    
-    def to_dict(self):
-        return {
-            'items': self.items,
-            'total_items': self.get_total_items()
-        }
-
 # Database Manager
 class DatabaseManager:
     def __init__(self, db_path=None):
@@ -327,6 +278,19 @@ class DatabaseManager:
             )
         ''')
         
+        # Cart items table - THIS WAS MISSING!
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS cart_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                product_id INTEGER,
+                quantity INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (product_id) REFERENCES products(id)
+            )
+        ''')
+        
         # Create default admin user
         admin_password = self.hash_password("admin123")
         cursor.execute('''
@@ -384,37 +348,20 @@ class EmailService:
     def __init__(self):
         self.smtp_server = "smtp.gmail.com"
         self.smtp_port = 587
-        self.admin_email = "your_email@gmail.com"  # Configure this
-        self.admin_password = "your_app_password"  # Configure this
+        # Use environment variables for security - configure these or disable email
+        self.admin_email = os.environ.get('ADMIN_EMAIL', 'your_email@gmail.com')
+        self.admin_password = os.environ.get('ADMIN_EMAIL_PASSWORD', 'your_app_password')
     
     def send_order_status_email(self, customer_email, order_id, status, expected_delivery=None):
         try:
-            msg = MIMEMultipart()
-            msg['From'] = self.admin_email
-            msg['To'] = customer_email
-            msg['Subject'] = f"Order #{order_id} Status Update"
-            
-            body = f"""
-            Dear Valued Customer,
-            
-            Your order #{order_id} status has been updated to: {status.upper()}
-            
-            """
-            
+            # For development, just log the email instead of sending
+            print(f"📧 EMAIL NOTIFICATION:")
+            print(f"To: {customer_email}")
+            print(f"Subject: Order #{order_id} Status Update")
+            print(f"Status: {status.upper()}")
             if expected_delivery:
-                body += f"Expected Delivery Date: {expected_delivery}\n"
-            
-            body += """
-            Thank you for shopping with us!
-            
-            Best regards,
-            BudolBox Team
-            """
-            
-            msg.attach(MIMEText(body, 'plain'))
-            
-            # Comment out actual email sending for development
-            print(f"Email sent to {customer_email} for order {order_id}: {status}")
+                print(f"Expected Delivery: {expected_delivery}")
+            print("=" * 50)
             return True
         except Exception as e:
             print(f"Email sending failed: {e}")
@@ -446,10 +393,8 @@ def load_categories():
 
 load_categories()
 
-# Session management using hash table concept
-user_sessions = {}  # Hash table for session management
+# Session management for browsing history only
 user_browsing_history = {}  # Hash table for user browsing histories
-user_carts = {}  # Hash table for user shopping carts
 
 # File upload configuration
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -473,7 +418,7 @@ def login():
         if not username or not password:
             return jsonify({'success': False, 'message': 'Please fill in all fields'})
         
-        # Hash password for comparison (Hash table lookup concept)
+        # Hash password for comparison
         password_hash = db.hash_password(password)
         
         user_data = db.execute_query(
@@ -484,17 +429,15 @@ def login():
         if user_data:
             user_id, username, email, role = user_data[0]
             
-            # Store in session (Hash table concept)
+            # Store in session
             session['user_id'] = user_id
             session['username'] = username
             session['email'] = email
             session['role'] = role
             
-            # Initialize user-specific data structures
+            # Initialize user browsing history only
             if user_id not in user_browsing_history:
                 user_browsing_history[user_id] = BrowsingHistory()
-            if user_id not in user_carts:
-                user_carts[user_id] = CartStack()
             
             return jsonify({
                 'success': True, 
@@ -524,7 +467,7 @@ def register():
         if len(password) < 6:
             return jsonify({'success': False, 'message': 'Password must be at least 6 characters'})
         
-        # Check if user already exists (Hash table lookup concept)
+        # Check if user already exists
         existing_user = db.execute_query(
             "SELECT id FROM users WHERE username = ? OR email = ?",
             (username, email)
@@ -634,7 +577,7 @@ def get_product(product_id):
     if 'user_id' in session:
         user_id = session['user_id']
         
-        # Add to browsing history with complete product info (Linked List operation)
+        # Add to browsing history with complete product info
         product_data = db.execute_query(
             "SELECT name, price, image_path FROM products WHERE id = ?", (product_id,)
         )
@@ -806,7 +749,7 @@ def checkout():
     if not address or not contact:
         return jsonify({'success': False, 'message': 'Address and contact are required'})
     
-    # ✅ Fetch cart items from the DB instead of user_carts
+    # Fetch cart items from the DB
     cart_items = db.execute_query('''
         SELECT ci.product_id, ci.quantity, p.price
         FROM cart_items ci
@@ -859,6 +802,126 @@ def checkout():
         
     except Exception as e:
         return jsonify({'success': False, 'message': f'Failed to place order: {str(e)}'})
+    
+# Add this new route to your app.py after the existing checkout route
+
+@app.route('/api/checkout_selective', methods=['POST'])
+def checkout_selective():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    user_id = session['user_id']
+    data = request.get_json()
+    
+    address = data.get('address')
+    contact = data.get('contact')
+    notes = data.get('notes', '')
+    selected_items = data.get('selected_items', [])
+    
+    if not address or not contact:
+        return jsonify({'success': False, 'message': 'Address and contact are required'})
+    
+    if not selected_items:
+        return jsonify({'success': False, 'message': 'No items selected for checkout'})
+    
+    try:
+        # Verify that selected items exist in user's cart and get current prices
+        verified_items = []
+        total = 0
+        
+        for item in selected_items:
+            product_id = item['product_id']
+            requested_quantity = item['quantity']
+            
+            # Get current product info and verify it's in user's cart
+            cart_item = db.execute_query('''
+                SELECT ci.quantity, p.price, p.stock, p.name
+                FROM cart_items ci
+                JOIN products p ON ci.product_id = p.id
+                WHERE ci.user_id = ? AND ci.product_id = ?
+            ''', (user_id, product_id))
+            
+            if not cart_item:
+                return jsonify({'success': False, 'message': f'Product {product_id} not found in cart'})
+            
+            cart_quantity, current_price, stock, product_name = cart_item[0]
+            
+            # Verify requested quantity is available in cart
+            if requested_quantity > cart_quantity:
+                return jsonify({'success': False, 'message': f'Requested quantity for {product_name} exceeds cart quantity'})
+            
+            # Verify stock availability
+            if requested_quantity > stock:
+                return jsonify({'success': False, 'message': f'Insufficient stock for {product_name}'})
+            
+            verified_items.append({
+                'product_id': product_id,
+                'quantity': requested_quantity,
+                'price': current_price,
+                'name': product_name
+            })
+            total += current_price * requested_quantity
+        
+        # Create order
+        order_id = db.execute_insert('''
+            INSERT INTO orders (user_id, total_amount, status, shipping_address, contact_number, notes)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (user_id, total, 'pending', address, contact, notes))
+        
+        # Add order items, update stock, and adjust cart
+        for item in verified_items:
+            product_id = item['product_id']
+            quantity = item['quantity']
+            price = item['price']
+            
+            # Add to order items
+            db.execute_insert('''
+                INSERT INTO order_items (order_id, product_id, quantity, price)
+                VALUES (?, ?, ?, ?)
+            ''', (order_id, product_id, quantity, price))
+            
+            # Update product stock
+            db.execute_query('''
+                UPDATE products SET stock = stock - ? WHERE id = ?
+            ''', (quantity, product_id))
+            
+            # Update cart - reduce quantity or remove if quantity becomes 0
+            current_cart_qty = db.execute_query('''
+                SELECT quantity FROM cart_items WHERE user_id = ? AND product_id = ?
+            ''', (user_id, product_id))[0][0]
+            
+            new_cart_qty = current_cart_qty - quantity
+            
+            if new_cart_qty <= 0:
+                # Remove item from cart completely
+                db.execute_query('''
+                    DELETE FROM cart_items WHERE user_id = ? AND product_id = ?
+                ''', (user_id, product_id))
+            else:
+                # Update cart quantity
+                db.execute_query('''
+                    UPDATE cart_items SET quantity = ? WHERE user_id = ? AND product_id = ?
+                ''', (new_cart_qty, user_id, product_id))
+        
+        # Add to order processing queue
+        order_data = {
+            'id': order_id,
+            'user_id': user_id,
+            'total': total,
+            'status': 'pending'
+        }
+        order_queue.enqueue(order_data)
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Order #{order_id} placed successfully! {len(verified_items)} item(s) ordered. Total: {format_peso(total)}',
+            'order_id': order_id,
+            'total_formatted': format_peso(total),
+            'items_count': len(verified_items)
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Failed to place order: {str(e)}'})
 
 # Admin routes
 @app.route('/api/admin/products')
@@ -890,7 +953,6 @@ def admin_get_products():
         })
     
     return jsonify(products_list)
-
 
 @app.route('/api/admin/orders')
 def admin_get_orders():
@@ -1192,11 +1254,10 @@ def account():
         "username": user_data[0][1],
         "email": user_data[0][2],
         "role": user_data[0][3],
-        "created_at": str(user_data[0][4])  # send as string
+        "created_at": str(user_data[0][4])
     }
 
     return render_template("account.html", user=user)
-
 
 @app.route('/api/account', methods=['PUT'])
 def update_account():
